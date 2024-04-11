@@ -2,12 +2,14 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MobyLabWebProgramming.Core.DataTransferObjects;
+using MobyLabWebProgramming.Core.Errors;
 using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
 using MobyLabWebProgramming.Infrastructure.Authorization;
 using MobyLabWebProgramming.Infrastructure.Extensions;
 using MobyLabWebProgramming.Infrastructure.Services.Implementations;
 using MobyLabWebProgramming.Infrastructure.Services.Interfaces;
+using Newtonsoft.Json;
 
 namespace MobyLabWebProgramming.Backend.Controllers;
 
@@ -34,8 +36,47 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     [HttpGet("{id:guid}")] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetById/<some_guid>.
     public async Task<ActionResult<RequestResponse<PostDTO>>> GetById([FromRoute] Guid id) // The FromRoute attribute will bind the id from the route to this parameter.
     {
-        // return getPost from postService
-        return this.FromServiceResponse(await postService.GetPost(id));
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/Post/GetById/" + id.ToString();
+            var response = await client.GetAsync(link);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    var comment = JsonConvert.DeserializeObject<PostDTO>(responseData.ToString());
+                    return Ok(comment);
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
+    
     }
 
     /// <summary>
@@ -48,7 +89,46 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     public async Task<ActionResult<RequestResponse<PagedResponse<PostDTO>>>> GetPage([FromQuery] PaginationSearchQueryParams pagination) // The FromQuery attribute will bind the parameters matching the names of
                                                                                                                                          // the PaginationSearchQueryParams properties to the object in the method parameter.
     {
-        return this.FromServiceResponse(await postService.GetPosts(pagination));
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/Post/GetPage?" + pagination.ToQueryString();
+            var response = await client.GetAsync(link);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a PagedResponse object
+                    var pagedResponse = JsonConvert.DeserializeObject<PagedResponse<PostDTO>>(responseData.ToString());
+                    return Ok(pagedResponse);
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 
     /// <summary>
@@ -58,15 +138,45 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     [HttpPost] // This attribute will make the controller respond to a HTTP POST request on the route /api/User/Add.
     public async Task<ActionResult<RequestResponse>> Add([FromBody] PostAddDTO post)
     {
-        try 
+        using (HttpClient client = new HttpClient())
         {
-            return this.FromServiceResponse(await postService.AddPost(post));
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+            var link = "http://localhost:5000/api/Post/Add";
+            var response = await client.PostAsJsonAsync(link, post);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
 
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a RequestResponse object
+                    return Ok("Post added successfully");
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 
     /// <summary>
@@ -76,15 +186,45 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     [HttpPut] // This attribute will make the controller respond to a HTTP PUT request on the route /api/User/Update.
     public async Task<ActionResult<RequestResponse>> Update([FromBody] PostUpdateDTO post) // The FromBody attribute indicates that the parameter is deserialized from the JSON body.
     {
-        try 
+        using (HttpClient client = new HttpClient())
         {
-            return this.FromServiceResponse(await postService.UpdatePost(post));
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+            var link = "http://localhost:5000/api/Post/Update";
+            var response = await client.PutAsJsonAsync(link, post);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
 
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a RequestResponse object
+                    return Ok("Post updated successfully");
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 
     /// <summary>
@@ -95,6 +235,44 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     [HttpDelete("{id}/{idUserCreator}")] // This attribute will make the controller respond to a HTTP DELETE request on the route /api/User/Delete/<some_guid>.
     public async Task<ActionResult<RequestResponse>> Delete([FromRoute] Guid id, [FromRoute] Guid idUserCreator) // The FromRoute attribute will bind the id from the route to this parameter.
     {
-        return this.FromServiceResponse(await postService.DeletePost(id, idUserCreator));
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/Post/Delete/" + id.ToString() + "/" + idUserCreator.ToString();
+            var response = await client.DeleteAsync(link);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a RequestResponse object
+                    return Ok("Post deleted successfully");
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 }

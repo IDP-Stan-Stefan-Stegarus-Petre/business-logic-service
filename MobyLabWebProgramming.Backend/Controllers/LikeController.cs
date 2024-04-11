@@ -2,12 +2,14 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MobyLabWebProgramming.Core.DataTransferObjects;
+using MobyLabWebProgramming.Core.Errors;
 using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
 using MobyLabWebProgramming.Infrastructure.Authorization;
 using MobyLabWebProgramming.Infrastructure.Extensions;
 using MobyLabWebProgramming.Infrastructure.Services.Implementations;
 using MobyLabWebProgramming.Infrastructure.Services.Interfaces;
+using Newtonsoft.Json;
 
 namespace MobyLabWebProgramming.Backend.Controllers;
 
@@ -34,8 +36,46 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     [HttpGet("{id:guid}")] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetById/<some_guid>.
     public async Task<ActionResult<RequestResponse<LikeDTO>>> GetById([FromRoute] Guid id) // The FromRoute attribute will bind the id from the route to this parameter.
     {
-        // return getPost from postService
-        return this.FromServiceResponse(await likeService.GetLike(id));
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/Like/GetById/" + id.ToString();
+            var response = await client.GetAsync(link);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    var comment = JsonConvert.DeserializeObject<LikeDTO>(responseData.ToString());
+                    return Ok(comment);
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 
     /// <summary>
@@ -46,15 +86,93 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     [Authorize]
     [HttpGet("count-likes/{idPost:guid}")] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetPage.
     public async Task<ActionResult<RequestResponse<int>>> GetPostLikes([FromRoute] Guid idPost) // The FromQuery attribute will bind the parameters matching the names of                                                                                                                                   // the PaginationSearchQueryParams properties to the object in the method parameter.
-    {
-        return this.FromServiceResponse(await likeService.GetLikeCount(idPost));
+    { 
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/Like/GetPostLikes/" + idPost.ToString();
+            var response = await client.GetAsync(link);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    var comment = JsonConvert.DeserializeObject<int>(responseData.ToString());
+                    return Ok(comment);
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        } 
     }
 
     //GetLikesForPost
     [HttpGet("likes/{idPost}/{idUser}")] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetPage.
     public async Task<ActionResult<RequestResponse<List<LikeDTO>>>> GetLikesForPost([FromRoute] Guid idPost, [FromRoute] Guid idUser) // The FromQuery attribute will bind the parameters matching the names of                                                                                                                                    // the PaginationSearchQueryParams properties to the object in the method parameter.
     {
-        return this.FromServiceResponse(await likeService.GetLikesForPost(idPost, idUser));
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/Like/GetLikesForPost/" + idPost.ToString() + "/" + idUser.ToString();
+            var response = await client.GetAsync(link);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    var comment = JsonConvert.DeserializeObject<List<LikeDTO>>(responseData.ToString());
+                    return Ok(comment);
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 
     /// <summary>
@@ -64,15 +182,45 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     [HttpPost] // This attribute will make the controller respond to a HTTP POST request on the route /api/User/Add.
     public async Task<ActionResult<RequestResponse>> Add([FromBody] LikeAddDTO like)
     {
-        try 
+        using (HttpClient client = new HttpClient())
         {
-            return this.FromServiceResponse(await likeService.AddLike(like));
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+            var link = "http://localhost:5000/api/Like/Add";
+            var response = await client.PostAsJsonAsync(link, like);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
 
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    return Ok("Like added successfully!");
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
     /// <summary>
     /// This method implements the Delete operation (D from CRUD) on a user.
@@ -82,6 +230,44 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     [HttpDelete("{id}/{idUser}/{idPost}")] // This attribute will make the controller respond to a HTTP DELETE request on the route /api/User/Delete/<some_guid>.
     public async Task<ActionResult<RequestResponse>> Delete([FromRoute] Guid id, [FromRoute] Guid idUser, [FromRoute] Guid idPost) // The FromRoute attribute will bind the id from the route to this parameter.
     {
-        return this.FromServiceResponse(await likeService.DeleteLike(id, idUser, idPost));
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/Like/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
+            var response = await client.DeleteAsync(link);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    return Ok("Like deleted successfully!");
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 }

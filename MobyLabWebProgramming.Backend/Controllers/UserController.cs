@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Entities;
+using MobyLabWebProgramming.Core.Errors;
 using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
 using MobyLabWebProgramming.Infrastructure.Authorization;
 using MobyLabWebProgramming.Infrastructure.Extensions;
 using MobyLabWebProgramming.Infrastructure.Services.Interfaces;
+using Newtonsoft.Json;
 
 namespace MobyLabWebProgramming.Backend.Controllers;
 
@@ -31,21 +33,47 @@ public class UserController : AuthorizedController // Here we use the Authorized
     [HttpGet("{id:guid}")] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetById/<some_guid>.
     public async Task<ActionResult<RequestResponse<UserDTO>>> GetById([FromRoute] Guid id) // The FromRoute attribute will bind the id from the route to this parameter.
     {
-        var currentUser = await GetCurrentUser();
+            using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/User/GetById/" + id.ToString();
+            var response = await client.GetAsync(link);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
 
-        return currentUser.Result != null ? 
-            this.FromServiceResponse(await UserService.GetUser(id)) : 
-            this.ErrorMessageResult<UserDTO>(currentUser.Error);
-    }
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
 
-    /// <summary>
-    /// This method implements the Read operation (R from CRUD) on a user. 
-    /// </summary>
-    /// Unauthorized users can access this route for login purposes
-    [HttpGet("mail/{email}")] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetById/<some_guid>.
-    public async Task<ActionResult<RequestResponse<User>>> GetByEmail([FromRoute] String email) // The FromRoute attribute will bind the id from the route to this parameter.
-    {
-        return this.FromServiceResponse(await UserService.GetUserByEmail(email));
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    var comment = JsonConvert.DeserializeObject<UserDTO>(responseData.ToString());
+                    return Ok(comment);
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
+    
     }
 
     /// <summary>
@@ -58,11 +86,46 @@ public class UserController : AuthorizedController // Here we use the Authorized
     public async Task<ActionResult<RequestResponse<PagedResponse<UserDTO>>>> GetPage([FromQuery] PaginationSearchQueryParams pagination) // The FromQuery attribute will bind the parameters matching the names of
                                                                                                                                          // the PaginationSearchQueryParams properties to the object in the method parameter.
     {
-        var currentUser = await GetCurrentUser();
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/User/GetPage?" + pagination.ToQueryString();
+            var response = await client.GetAsync(link);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
 
-        return currentUser.Result != null ?
-            this.FromServiceResponse(await UserService.GetUsers(pagination)) :
-            this.ErrorMessageResult<PagedResponse<UserDTO>>(currentUser.Error);
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    var comment = JsonConvert.DeserializeObject<PagedResponse<UserDTO>>(responseData.ToString());
+                    return Ok(comment);
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 
     /// <summary>
@@ -72,12 +135,45 @@ public class UserController : AuthorizedController // Here we use the Authorized
     [HttpPost] // This attribute will make the controller respond to a HTTP POST request on the route /api/User/Add.
     public async Task<ActionResult<RequestResponse>> Add([FromBody] UserAddDTO user)
     {
-        var currentUser = await GetCurrentUser();
-        user.Password = PasswordUtils.HashPassword(user.Password);
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/User/Add";
+            var response = await client.PostAsJsonAsync(link, user);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
 
-        return currentUser.Result != null ?
-            this.FromServiceResponse(await UserService.AddUser(user, currentUser.Result)) :
-            this.ErrorMessageResult(currentUser.Error);
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    return Ok("User added successfully");
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 
     /// <summary>
@@ -87,14 +183,45 @@ public class UserController : AuthorizedController // Here we use the Authorized
     [HttpPut] // This attribute will make the controller respond to a HTTP PUT request on the route /api/User/Update.
     public async Task<ActionResult<RequestResponse>> Update([FromBody] UserUpdateDTO user) // The FromBody attribute indicates that the parameter is deserialized from the JSON body.
     {
-        var currentUser = await GetCurrentUser();
-
-        return currentUser.Result != null ?
-            this.FromServiceResponse(await UserService.UpdateUser(user with
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/User/Update";
+            var response = await client.PutAsJsonAsync(link, user);
+            if (response.IsSuccessStatusCode)
             {
-                Password = !string.IsNullOrWhiteSpace(user.Password) ? PasswordUtils.HashPassword(user.Password) : null
-            }, currentUser.Result)) :
-            this.ErrorMessageResult(currentUser.Error);
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    return Ok("User updated successfully");
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 
     /// <summary>
@@ -105,10 +232,44 @@ public class UserController : AuthorizedController // Here we use the Authorized
     [HttpDelete("{id:guid}")] // This attribute will make the controller respond to a HTTP DELETE request on the route /api/User/Delete/<some_guid>.
     public async Task<ActionResult<RequestResponse>> Delete([FromRoute] Guid id) // The FromRoute attribute will bind the id from the route to this parameter.
     {
-        var currentUser = await GetCurrentUser();
+        using (HttpClient client = new HttpClient())
+        {
+            var link = "http://localhost:5000/api/User/Delete/" + id.ToString();
+            var response = await client.DeleteAsync(link);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
 
-        return currentUser.Result != null ?
-            this.FromServiceResponse(await UserService.DeleteUser(id)) :
-            this.ErrorMessageResult(currentUser.Error);
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                // Access the response field
+                var responseData = jsonObject?.response;
+                var errorData = jsonObject?.errorMessage;
+
+                if (responseData != null)
+                {
+                    // Deserialize the response field into a CommentDTO object
+                    return Ok("User deleted successfully");
+                }
+                else
+                {
+                    // Deserialize the errorMessage field into an ErrorMessage object
+                    var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                    return BadRequest(error);
+                }
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                // Deserialize the JSON into an object
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+                var errorData = jsonObject?.errorMessage;
+                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
+                return BadRequest(error);
+            }
+        }
     }
 }
