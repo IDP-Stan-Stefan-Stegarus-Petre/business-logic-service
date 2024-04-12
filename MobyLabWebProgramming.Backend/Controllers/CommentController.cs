@@ -24,6 +24,7 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
     /// Inject the required services through the constructor.
     /// </summary>
     public ICommentService CommentService { get; set; }
+    public string root = "http://localhost:5000";
     public CommentController(ICommentService _CommentService) // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
     {
         CommentService = _CommentService;
@@ -35,7 +36,8 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Comment/GetById/" + id.ToString();
+            // var link = "http://localhost:5000/api/Comment/GetById/" + id.ToString();
+            var link = root + "/api/Comment/GetById/" + id.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -81,7 +83,8 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Comment/GetPostComments/count-Comments/" + idPost.ToString();
+            // var link = "http://localhost:5000/api/Comment/GetPostComments/count-Comments/" + idPost.ToString();
+            var link = root + "/api/Comment/GetPostComments/count-Comments/" + idPost.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -127,7 +130,8 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Comment/GetCommentsForPost/Comments/" + idPost.ToString();
+            // var link = "http://localhost:5000/api/Comment/GetCommentsForPost/Comments/" + idPost.ToString();
+            var link = root + "/api/Comment/GetCommentsForPost/Comments/" + idPost.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -176,7 +180,8 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Comment/Add";
+            // var link = "http://localhost:5000/api/Comment/Add";
+            var link = root + "/api/Comment/Add";
             var response = await client.PostAsJsonAsync(link, Comment);
             if (response.IsSuccessStatusCode)
             {
@@ -221,7 +226,8 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Comment/Update";
+            // var link = "http://localhost:5000/api/Comment/Update";
+            var link = root + "/api/Comment/Update";
             var response = await client.PutAsJsonAsync(link, Comment);
             if (response.IsSuccessStatusCode)
             {
@@ -270,7 +276,8 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Comment/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
+            // var link = "http://localhost:5000/api/Comment/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
+            var link = root + "/api/Comment/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
             var response = await client.DeleteAsync(link);
             if (response.IsSuccessStatusCode)
             {

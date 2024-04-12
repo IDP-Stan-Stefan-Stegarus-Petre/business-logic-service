@@ -24,6 +24,7 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     /// Inject the required services through the constructor.
     /// </summary>
     public ILikeService likeService { get; set; }
+    public string root = "http://localhost:5000";
     public LikeController(ILikeService _likeService) // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
     {
         likeService = _likeService;
@@ -38,7 +39,8 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Like/GetById/" + id.ToString();
+            // var link = "http://localhost:5000/api/Like/GetById/" + id.ToString();
+            var link = root + "/api/Like/GetById/" + id.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -89,7 +91,8 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     { 
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Like/GetPostLikes/count-likes/" + idPost.ToString();
+            // var link = "http://localhost:5000/api/Like/GetPostLikes/count-likes/" + idPost.ToString();
+            var link = root + "/api/Like/GetPostLikes/count-likes/" + idPost.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -135,7 +138,8 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Like/GetLikesForPost/likes/" + idPost.ToString() + "/" + idUser.ToString();
+            // var link = "http://localhost:5000/api/Like/GetLikesForPost/likes/" + idPost.ToString() + "/" + idUser.ToString();
+            var link = root + "/api/Like/GetLikesForPost/likes/" + idPost.ToString() + "/" + idUser.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -184,7 +188,8 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Like/Add";
+            // var link = "http://localhost:5000/api/Like/Add";
+            var link = root + "/api/Like/Add";
             var response = await client.PostAsJsonAsync(link, like);
             if (response.IsSuccessStatusCode)
             {
@@ -232,7 +237,8 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Like/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
+            // var link = "http://localhost:5000/api/Like/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
+            var link = root + "/api/Like/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
             var response = await client.DeleteAsync(link);
             if (response.IsSuccessStatusCode)
             {

@@ -23,6 +23,7 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
     /// <summary>
     /// Inject the required services through the constructor.
     /// </summary>
+    public string root = "http://localhost:5000";
     public UserController() // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
     {
     }
@@ -34,9 +35,10 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
     [HttpGet("{id:guid}")] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetById/<some_guid>.
     public async Task<ActionResult<RequestResponse<UserDTO>>> GetById([FromRoute] Guid id) // The FromRoute attribute will bind the id from the route to this parameter.
     {
-            using (HttpClient client = new HttpClient())
+        using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/User/GetById/" + id.ToString();
+            // var link = "http://localhost:5000/api/User/GetById/" + id.ToString();
+            var link = root + "/api/User/GetById/" + id.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -51,7 +53,8 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
 
                 if (responseData != null)
                 {
-                    UserDTO user = new UserDTO(){
+                    UserDTO user = new UserDTO()
+                    {
                         Id = Guid.Parse(responseData.id.ToString()),
                         Name = responseData.name.ToString(),
                         Email = responseData.email.ToString(),
@@ -59,7 +62,7 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
                     };
                     if (responseData.role == "Admin")
                     {
-                        user.Role  = UserRoleEnum.Admin;
+                        user.Role = UserRoleEnum.Admin;
                     }
                     else if (responseData.role == "User")
                     {
@@ -86,7 +89,7 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
                 return BadRequest(error);
             }
         }
-    
+
     }
 
     /// <summary>
@@ -101,7 +104,8 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/User/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            // var link = "http://localhost:5000/api/User/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            var link = root + "/api/User/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -120,7 +124,8 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
                     PagedResponse<UserDTO> res = new PagedResponse<UserDTO>((uint)responseData.page, (uint)responseData.pageSize, (uint)responseData.totalCount, users);
                     foreach (var item in responseData.data)
                     {
-                        UserDTO user = new UserDTO(){
+                        UserDTO user = new UserDTO()
+                        {
                             Id = Guid.Parse(item.id.ToString()),
                             Name = item.name.ToString(),
                             Email = item.email.ToString(),
@@ -128,7 +133,7 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
                         };
                         if (item.role == "Admin")
                         {
-                            user.Role  = UserRoleEnum.Admin;
+                            user.Role = UserRoleEnum.Admin;
                         }
                         else if (item.role == "User")
                         {
@@ -168,7 +173,8 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/User/Add";
+            // var link = "http://localhost:5000/api/User/Add";
+            var link = root + "/api/User/Add";
             var response = await client.PostAsJsonAsync(link, user);
             if (response.IsSuccessStatusCode)
             {
@@ -216,7 +222,8 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/User/Update";
+            // var link = "http://localhost:5000/api/User/Update";
+            var link = root + "/api/User/Update";
             var response = await client.PutAsJsonAsync(link, user);
             if (response.IsSuccessStatusCode)
             {
@@ -265,7 +272,8 @@ public class UserController : ControllerBase // Here we use the AuthorizedContro
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/User/Delete/" + id.ToString();
+            // var link = "http://localhost:5000/api/User/Delete/" + id.ToString();
+            var link = root + "/api/User/Delete/" + id.ToString();
             var response = await client.DeleteAsync(link);
             if (response.IsSuccessStatusCode)
             {

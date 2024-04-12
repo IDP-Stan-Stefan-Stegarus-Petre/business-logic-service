@@ -24,6 +24,7 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     /// Inject the required services through the constructor.
     /// </summary>
     public IPostService postService { get; set; }
+    public string root = "http://localhost:5000";
     public PostController(IPostService _postService) // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
     {
         postService = _postService;
@@ -38,6 +39,7 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
+            // var link = "http://localhost:5000/api/Post/GetById/" + id.ToString();
             var link = "http://localhost:5000/api/Post/GetById/" + id.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
@@ -91,7 +93,9 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Post/GetPage?"  + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            // var link = "http://localhost:5000/api/Post/GetPage?"  + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            // var link = "http://localhost:5000/api/Post/GetPage?" + pagination.ToQueryString();
+            var link = root + "/api/Post/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -140,7 +144,8 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Post/Add";
+            // var link = "http://localhost:5000/api/Post/Add";
+            var link = root + "/api/Post/Add";
             var response = await client.PostAsJsonAsync(link, post);
             if (response.IsSuccessStatusCode)
             {
@@ -188,7 +193,8 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Post/Update";
+            // var link = "http://localhost:5000/api/Post/Update";
+            var link = root + "/api/Post/Update";
             var response = await client.PutAsJsonAsync(link, post);
             if (response.IsSuccessStatusCode)
             {
@@ -237,7 +243,8 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Post/Delete/" + id.ToString() + "/" + idUserCreator.ToString();
+            // var link = "http://localhost:5000/api/Post/Delete/" + id.ToString() + "/" + idUserCreator.ToString();
+            var link = root + "/api/Post/Delete/" + id.ToString() + "/" + idUserCreator.ToString();
             var response = await client.DeleteAsync(link);
             if (response.IsSuccessStatusCode)
             {

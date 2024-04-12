@@ -23,6 +23,7 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
     /// Inject the required services through the constructor.
     /// </summary>
     public IEventService EventService { get; set; }
+    public string root = "http://localhost:5000";
     public EventController(IEventService _EventService) // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
     {
         EventService = _EventService;
@@ -37,7 +38,8 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Event/GetById/" + id.ToString();
+            // var link = "http://localhost:5000/api/Event/GetById/" + id.ToString();
+            var link = root + "/api/Event/GetById/" + id.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -89,7 +91,8 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Event/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            // var link = "http://localhost:5000/api/Event/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            var link = root + "/api/Event/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -138,7 +141,8 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Event/Add";
+            // var link = "http://localhost:5000/api/Event/Add";
+            var link = root + "/api/Event/Add";
             var response = await client.PostAsJsonAsync(link, Event);
             if (response.IsSuccessStatusCode)
             {
@@ -185,7 +189,8 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Event/Update";
+            // var link = "http://localhost:5000/api/Event/Update";
+            var link = root + "/api/Event/Update";
             var response = await client.PutAsJsonAsync(link, Event);
             if (response.IsSuccessStatusCode)
             {
@@ -233,7 +238,8 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Event/Delete/" + id.ToString() + "/" + idUser.ToString();
+            // var link = "http://localhost:5000/api/Event/Delete/" + id.ToString() + "/" + idUser.ToString();
+            var link = root + "/api/Event/Delete/" + id.ToString() + "/" + idUser.ToString();
             var response = await client.DeleteAsync(link);
             if (response.IsSuccessStatusCode)
             {

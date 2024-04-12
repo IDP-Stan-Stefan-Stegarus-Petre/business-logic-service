@@ -24,6 +24,7 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
     /// Inject the required services through the constructor.
     /// </summary>
     public IFeedbackService FeedbackService { get; set; }
+    public string root = "http://localhost:5000";
     public FeedbackController(IFeedbackService _FeedbackService) // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
     {
         FeedbackService = _FeedbackService;
@@ -40,7 +41,8 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
         // return this.FromServiceResponse(await FeedbackService.GetFeedback(id));
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Feedback/GetById/" + id.ToString();
+            // var link = "http://localhost:5000/api/Feedback/GetById/" + id.ToString();
+            var link = root + "/api/Feedback/GetById/" + id.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -96,7 +98,8 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
             if (idUserInitiator == Guid.Empty)
                 return BadRequest("Invalid user" + idUserInitiator.ToString());
 
-            var link = "http://localhost:5000/api/Feedback/GetPage/"+  idUserInitiator.ToString() + "/?Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            var link = root + "/api/Feedback/GetPage/"+  idUserInitiator.ToString() + "/?Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            // var link = "http://localhost:5000/api/Feedback/GetPage/"+  idUserInitiator.ToString() + "/?Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -145,7 +148,8 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Feedback/Add";
+            // var link = "http://localhost:5000/api/Feedback/Add";
+            var link = root + "/api/Feedback/Add";
             var response = await client.PostAsJsonAsync(link, Feedback);
             if (response.IsSuccessStatusCode)
             {
@@ -193,7 +197,8 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Feedback/Update";
+            // var link = "http://localhost:5000/api/Feedback/Update";
+            var link = root + "/api/Feedback/Update";
             var response = await client.PutAsJsonAsync(link, Feedback);
             if (response.IsSuccessStatusCode)
             {
@@ -241,7 +246,8 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Feedback/Delete/" + id.ToString() + "/" + idUser.ToString();
+            //var link = "http://localhost:5000/api/Feedback/Delete/" + id.ToString() + "/" + idUser.ToString();
+            var link = root + "/api/Feedback/Delete/" + id.ToString() + "/" + idUser.ToString();
             var response = await client.DeleteAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -279,5 +285,3 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
         }
     }
 }
-
-//332e58ae-5df1-437c-ae11-8b72d3b47a37
