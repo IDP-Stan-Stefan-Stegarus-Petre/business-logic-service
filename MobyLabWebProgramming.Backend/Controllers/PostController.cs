@@ -91,7 +91,7 @@ public class PostController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Post/GetPage?" + pagination.ToQueryString();
+            var link = "http://localhost:5000/api/Post/GetPage?"  + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {

@@ -1,15 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Reflection.Metadata.Ecma335;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MobyLabWebProgramming.Core.DataTransferObjects;
-using MobyLabWebProgramming.Core.Entities;
+using MobyLabWebProgramming.Core.Enums;
 using MobyLabWebProgramming.Core.Errors;
 using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
 using MobyLabWebProgramming.Infrastructure.Authorization;
 using MobyLabWebProgramming.Infrastructure.Extensions;
+using MobyLabWebProgramming.Infrastructure.Services.Implementations;
 using MobyLabWebProgramming.Infrastructure.Services.Interfaces;
 using Newtonsoft.Json;
-
 namespace MobyLabWebProgramming.Backend.Controllers;
 
 /// <summary>
@@ -17,12 +18,12 @@ namespace MobyLabWebProgramming.Backend.Controllers;
 /// </summary>
 [ApiController] // This attribute specifies for the framework to add functionality to the controller such as binding multipart/form-data.
 [Route("api/[controller]/[action]")] // The Route attribute prefixes the routes/url paths with template provides as a string, the keywords between [] are used to automatically take the controller and method name.
-public class UserController : AuthorizedController // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
+public class UserController : ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
 {
     /// <summary>
     /// Inject the required services through the constructor.
     /// </summary>
-    public UserController(IUserService userService) : base(userService) // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
+    public UserController() // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
     {
     }
 
@@ -50,9 +51,21 @@ public class UserController : AuthorizedController // Here we use the Authorized
 
                 if (responseData != null)
                 {
-                    // Deserialize the response field into a CommentDTO object
-                    var comment = JsonConvert.DeserializeObject<UserDTO>(responseData.ToString());
-                    return Ok(comment);
+                    UserDTO user = new UserDTO(){
+                        Id = Guid.Parse(responseData.id.ToString()),
+                        Name = responseData.name.ToString(),
+                        Email = responseData.email.ToString(),
+                        PhoneNumber = responseData.phoneNumber.ToString()
+                    };
+                    if (responseData.role == "Admin")
+                    {
+                        user.Role  = UserRoleEnum.Admin;
+                    }
+                    else if (responseData.role == "User")
+                    {
+                        user.Role = UserRoleEnum.User;
+                    }
+                    return Ok(user);
                 }
                 else
                 {
@@ -88,7 +101,7 @@ public class UserController : AuthorizedController // Here we use the Authorized
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/User/GetPage?" + pagination.ToQueryString();
+            var link = "http://localhost:5000/api/User/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -103,9 +116,27 @@ public class UserController : AuthorizedController // Here we use the Authorized
 
                 if (responseData != null)
                 {
-                    // Deserialize the response field into a CommentDTO object
-                    var comment = JsonConvert.DeserializeObject<PagedResponse<UserDTO>>(responseData.ToString());
-                    return Ok(comment);
+                    List<UserDTO> users = new List<UserDTO>();
+                    PagedResponse<UserDTO> res = new PagedResponse<UserDTO>((uint)responseData.page, (uint)responseData.pageSize, (uint)responseData.totalCount, users);
+                    foreach (var item in responseData.data)
+                    {
+                        UserDTO user = new UserDTO(){
+                            Id = Guid.Parse(item.id.ToString()),
+                            Name = item.name.ToString(),
+                            Email = item.email.ToString(),
+                            PhoneNumber = item.phoneNumber.ToString()
+                        };
+                        if (item.role == "Admin")
+                        {
+                            user.Role  = UserRoleEnum.Admin;
+                        }
+                        else if (item.role == "User")
+                        {
+                            user.Role = UserRoleEnum.User;
+                        }
+                        users.Add(user);
+                    }
+                    return Ok(res);
                 }
                 else
                 {

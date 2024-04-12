@@ -89,7 +89,7 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     { 
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Like/GetPostLikes/" + idPost.ToString();
+            var link = "http://localhost:5000/api/Like/GetPostLikes/count-likes/" + idPost.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -135,7 +135,7 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     {
         using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Like/GetLikesForPost/" + idPost.ToString() + "/" + idUser.ToString();
+            var link = "http://localhost:5000/api/Like/GetLikesForPost/likes/" + idPost.ToString() + "/" + idUser.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {

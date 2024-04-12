@@ -93,7 +93,10 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
         // return this.FromServiceResponse(await FeedbackService.GetFeedbacks(pagination, idUserInitiator));
          using (HttpClient client = new HttpClient())
         {
-            var link = "http://localhost:5000/api/Feedback/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            if (idUserInitiator == Guid.Empty)
+                return BadRequest("Invalid user" + idUserInitiator.ToString());
+
+            var link = "http://localhost:5000/api/Feedback/GetPage/"+  idUserInitiator.ToString() + "/?Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -127,8 +130,7 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
                 var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseBody);
 
                 var errorData = jsonObject?.errorMessage;
-                var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
-                return BadRequest(error);
+                return BadRequest(errorData);
             }
         }
     
