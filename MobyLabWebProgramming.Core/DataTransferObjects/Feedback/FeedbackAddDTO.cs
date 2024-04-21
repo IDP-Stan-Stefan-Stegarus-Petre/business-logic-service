@@ -1,6 +1,3 @@
-using MobyLabWebProgramming.Core.Entities;
-using MobyLabWebProgramming.Core.Enums;
-
 namespace MobyLabWebProgramming.Core.DataTransferObjects;
 
 /// <summary>

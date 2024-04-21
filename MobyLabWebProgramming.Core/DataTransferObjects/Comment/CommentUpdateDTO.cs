@@ -1,5 +1,3 @@
-using MobyLabWebProgramming.Core.Entities;
-
 namespace MobyLabWebProgramming.Core.DataTransferObjects;
 
 /// <summary>
