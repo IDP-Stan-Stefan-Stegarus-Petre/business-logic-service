@@ -1,46 +1,18 @@
-﻿using System.Security.Claims;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MobyLabWebProgramming.Infrastructure.Configurations;
-using MobyLabWebProgramming.Infrastructure.Database;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MobyLabWebProgramming.Infrastructure.Converters;
-using MobyLabWebProgramming.Infrastructure.Services.Implementations;
-using MobyLabWebProgramming.Infrastructure.Services.Interfaces;
-using MobyLabWebProgramming.Infrastructure.Workers;
 using Serilog;
 using Serilog.Events;
-using MobyLabWebProgramming.Infrastructure.Repositories.Interfaces;
-using MobyLabWebProgramming.Infrastructure.Repositories.Implementation;
 
 namespace MobyLabWebProgramming.Infrastructure.Extensions;
 
 public static class WebApplicationBuilderExtensions
 {
-    /// <summary>
-    /// This extension method adds the database configuration and repository to the application builder.
-    /// </summary>
-    public static WebApplicationBuilder AddRepository(this WebApplicationBuilder builder)
-    {
-        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true); // This is used to avoid some errors with the timezone when working with timestamps.
-
-        builder.Services.AddDbContext<WebAppDatabaseContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("WebAppDatabase"), // This gets the connection string from ConnectionStrings.WebAppDatabase in appsettings.json.
-                o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery)
-                    .CommandTimeout((int)TimeSpan.FromMinutes(15).TotalSeconds)));
-        builder.Services.AddTransient<IRepository<WebAppDatabaseContext>, Repository<WebAppDatabaseContext>>();
-
-        return builder;
-    }
-
     /// <summary>
     /// This extension method adds the CORS configuration to the application builder.
     /// </summary>
@@ -79,54 +51,6 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 
-    /// <summary>
-    /// This extension method adds the default authorization policy to the AuthorizationPolicyBuilder.
-    /// It requires that the JWT needs to have the given claims in the configuration.
-    /// </summary>
-    private static AuthorizationPolicyBuilder AddDefaultPolicy(this AuthorizationPolicyBuilder policy) =>
-        policy.RequireClaim(ClaimTypes.NameIdentifier)
-            .RequireClaim(ClaimTypes.Name)
-            .RequireClaim(ClaimTypes.Email);
-
-
-    /// <summary>
-    /// This extension method adds just the authorization configuration to the application builder.
-    /// </summary>
-    private static WebApplicationBuilder ConfigureAuthentication(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // This is to use the JWT token with the "Bearer" scheme
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
-            {
-                var jwtConfiguration = builder.Configuration.GetSection(nameof(JwtConfiguration)).Get<JwtConfiguration>(); // Here we use the JWT configuration from the application.json.
-
-                var key = Encoding.ASCII.GetBytes(jwtConfiguration.Key); // Use configured key to verify the JWT signature.
-                options.TokenValidationParameters = new()
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true, // Validate the issuer claim in the JWT. 
-                    ValidateAudience = true, // Validate the audience claim in the JWT.
-                    ValidAudience = jwtConfiguration.Audience, // Sets the intended audience.
-                    ValidIssuer = jwtConfiguration.Issuer, // Sets the issuing authority.
-                    ClockSkew = TimeSpan.Zero // No clock skew is added, when the token expires it will immediately become unusable.
-                };
-                options.RequireHttpsMetadata = false;
-                options.IncludeErrorDetails = true;
-            }).Services
-            .AddAuthorization(options =>
-            {
-                options.DefaultPolicy = new AuthorizationPolicyBuilder().AddDefaultPolicy().Build(); // Adds the default policy for the JWT claims.
-            });
-
-        return builder;
-    }
-
-    /// <summary>
-    /// This extension method adds the authorization with the Swagger configuration to the application builder.
-    /// </summary>
     public static WebApplicationBuilder AddAuthorizationWithSwagger(this WebApplicationBuilder builder, string application)
     {
         builder.Services.AddSwaggerGen(c =>
@@ -157,7 +81,7 @@ public static class WebApplicationBuilderExtensions
             });
         });
 
-        return builder.ConfigureAuthentication();
+        return builder;
     }
 
     /// <summary>
@@ -165,21 +89,6 @@ public static class WebApplicationBuilderExtensions
     /// </summary>
     public static WebApplicationBuilder AddServices(this WebApplicationBuilder builder)
     {
-        builder.Services.Configure<JwtConfiguration>(builder.Configuration.GetSection(nameof(JwtConfiguration)));
-        builder.Services.Configure<FileStorageConfiguration>(builder.Configuration.GetSection(nameof(FileStorageConfiguration)));
-        builder.Services.Configure<MailConfiguration>(builder.Configuration.GetSection(nameof(MailConfiguration)));
-        builder.Services
-            .AddTransient<IUserService, UserService>()
-            .AddTransient<IPostService, PostService>()
-            .AddTransient<ILikeService, LikeService>()
-            .AddTransient<ICommentService, CommentService>()
-            .AddTransient<IEventService, EventService>()
-            .AddTransient<IFeedbackService, FeedbackService>()
-            .AddTransient<ILoginService, LoginService>()
-            .AddTransient<IFileRepository, FileRepository>()
-            .AddTransient<IUserFileService, UserFileService>()
-            .AddTransient<IMailService, MailService>();
-
         return builder;
     }
 
@@ -202,16 +111,6 @@ public static class WebApplicationBuilderExtensions
                 .Enrich.WithThreadId()
                 .WriteTo.Console();
         });
-
-        return builder;
-    }
-
-    /// <summary>
-    /// This extension method adds asynchronous workers to the application builder.
-    /// </summary>
-    public static WebApplicationBuilder AddWorkers(this WebApplicationBuilder builder)
-    {
-        builder.Services.AddHostedService<InitializerWorker>();
 
         return builder;
     }

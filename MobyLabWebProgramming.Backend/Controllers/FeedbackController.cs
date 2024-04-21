@@ -1,33 +1,21 @@
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Errors;
 using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
-using MobyLabWebProgramming.Infrastructure.Authorization;
-using MobyLabWebProgramming.Infrastructure.Extensions;
-using MobyLabWebProgramming.Infrastructure.Services.Implementations;
-using MobyLabWebProgramming.Infrastructure.Services.Interfaces;
 using Newtonsoft.Json;
 
 namespace MobyLabWebProgramming.Backend.Controllers;
 
-/// <summary>
-/// This is a controller example for CRUD operations on users.
-/// </summary>
 [ApiController] // This attribute specifies for the framework to add functionality to the controller such as binding multipart/form-data.
 [Route("api/[controller]/[action]")] // The Route attribute prefixes the routes/url paths with template provides as a string, the keywords between [] are used to automatically take the controller and method name.
 public class FeedbackController : ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
 {
-    /// <summary>
-    /// Inject the required services through the constructor.
-    /// </summary>
-    public IFeedbackService FeedbackService { get; set; }
     public string root = "http://localhost:5000";
-    public FeedbackController(IFeedbackService _FeedbackService) // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
+
+    public FeedbackController() // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
     {
-        FeedbackService = _FeedbackService;
     }
 
     /// <summary>

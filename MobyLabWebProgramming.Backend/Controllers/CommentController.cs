@@ -1,33 +1,18 @@
-using System.Reflection.Metadata.Ecma335;
-using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Errors;
-using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
-using MobyLabWebProgramming.Infrastructure.Authorization;
-using MobyLabWebProgramming.Infrastructure.Extensions;
-using MobyLabWebProgramming.Infrastructure.Services.Implementations;
-using MobyLabWebProgramming.Infrastructure.Services.Interfaces;
 using Newtonsoft.Json;
 namespace MobyLabWebProgramming.Backend.Controllers;
 
-/// <summary>
-/// This is a controller example for CRUD operations on users.
-/// </summary>
 [ApiController] // This attribute specifies for the framework to add functionality to the controller such as binding multipart/form-data.
 [Route("api/[controller]/[action]")] // The Route attribute prefixes the routes/url paths with template provides as a string, the keywords between [] are used to automatically take the controller and method name.
 public class CommentController: ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
 {
-    /// <summary>
-    /// Inject the required services through the constructor.
-    /// </summary>
-    public ICommentService CommentService { get; set; }
     public string root = "http://localhost:5000";
-    public CommentController(ICommentService _CommentService) // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
+    public CommentController()
     {
-        CommentService = _CommentService;
     }
 
     [Authorize] // You need to use this attribute to protect the route access, it will return a Forbidden status code if the JWT is not present or invalid, and also it will decode the JWT token.

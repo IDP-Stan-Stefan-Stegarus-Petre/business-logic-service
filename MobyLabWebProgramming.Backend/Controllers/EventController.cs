@@ -1,14 +1,9 @@
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Errors;
 using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
-using MobyLabWebProgramming.Infrastructure.Authorization;
-using MobyLabWebProgramming.Infrastructure.Extensions;
-using MobyLabWebProgramming.Infrastructure.Services.Implementations;
-using MobyLabWebProgramming.Infrastructure.Services.Interfaces;
 using Newtonsoft.Json;
 namespace MobyLabWebProgramming.Backend.Controllers;
 
@@ -19,14 +14,10 @@ namespace MobyLabWebProgramming.Backend.Controllers;
 [Route("api/[controller]/[action]")] // The Route attribute prefixes the routes/url paths with template provides as a string, the keywords between [] are used to automatically take the controller and method name.
 public class EventController: ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
 {
-    /// <summary>
-    /// Inject the required services through the constructor.
-    /// </summary>
-    public IEventService EventService { get; set; }
     public string root = "http://localhost:5000";
-    public EventController(IEventService _EventService) // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
+
+    public EventController() // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
     {
-        EventService = _EventService;
     }
 
     /// <summary>
