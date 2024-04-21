@@ -89,6 +89,8 @@ public static class WebApplicationBuilderExtensions
     /// </summary>
     public static WebApplicationBuilder AddServices(this WebApplicationBuilder builder)
     {
+        builder.Services.Configure<DbReadWriteServiceConfiguration>(builder.Configuration.GetSection(nameof(DbReadWriteServiceConfiguration)));
+
         return builder;
     }
 
