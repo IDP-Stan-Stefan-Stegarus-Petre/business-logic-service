@@ -1,21 +1,25 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Errors;
 using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
+using MobyLabWebProgramming.Infrastructure.Configurations;
 using Newtonsoft.Json;
 
 namespace MobyLabWebProgramming.Backend.Controllers;
 
 [ApiController] // This attribute specifies for the framework to add functionality to the controller such as binding multipart/form-data.
 [Route("api/[controller]/[action]")] // The Route attribute prefixes the routes/url paths with template provides as a string, the keywords between [] are used to automatically take the controller and method name.
-public class FeedbackController : ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
+public class
+    FeedbackController : ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
 {
-    public string root = "http://localhost:5000";
+    private readonly DbReadWriteServiceConfiguration _dbReadWriteServiceConfiguration;
 
-    public FeedbackController() // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
+    public FeedbackController(IOptions<DbReadWriteServiceConfiguration> dbReadWriteServiceConfiguration)
     {
+        _dbReadWriteServiceConfiguration = dbReadWriteServiceConfiguration.Value;
     }
 
     /// <summary>
@@ -30,7 +34,7 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Feedback/GetById/" + id.ToString();
-            var link = root + "/api/Feedback/GetById/" + id.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Feedback/GetById/" + id.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -77,16 +81,18 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
     /// </summary>
     [Authorize]
     [HttpGet("{idUserInitiator:guid}")] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetPage.
-    public async Task<ActionResult<RequestResponse<PagedResponse<FeedbackDTO>>>> GetPage([FromQuery] PaginationSearchQueryParams pagination, [FromRoute] Guid idUserInitiator) // The FromQuery attribute will bind the parameters matching the names of
-                                                                                                                                                                               // the PaginationSearchQueryParams properties to the object in the method parameter.
+    public async Task<ActionResult<RequestResponse<PagedResponse<FeedbackDTO>>>>
+        GetPage([FromQuery] PaginationSearchQueryParams pagination, [FromRoute] Guid idUserInitiator) // The FromQuery attribute will bind the parameters matching the names of
+        // the PaginationSearchQueryParams properties to the object in the method parameter.
     {
         // return this.FromServiceResponse(await FeedbackService.GetFeedbacks(pagination, idUserInitiator));
-         using (HttpClient client = new HttpClient())
+        using (HttpClient client = new HttpClient())
         {
             if (idUserInitiator == Guid.Empty)
                 return BadRequest("Invalid user" + idUserInitiator.ToString());
 
-            var link = root + "/api/Feedback/GetPage/"+  idUserInitiator.ToString() + "/?Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Feedback/GetPage/" + idUserInitiator.ToString() + "/?Search=" + pagination.Search + "&Page=" +
+                       pagination.Page + "&PageSize=" + pagination.PageSize;
             // var link = "http://localhost:5000/api/Feedback/GetPage/"+  idUserInitiator.ToString() + "/?Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
@@ -124,7 +130,6 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
                 return BadRequest(errorData);
             }
         }
-    
     }
 
     /// <summary>
@@ -137,7 +142,7 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Feedback/Add";
-            var link = root + "/api/Feedback/Add";
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Feedback/Add";
             var response = await client.PostAsJsonAsync(link, Feedback);
             if (response.IsSuccessStatusCode)
             {
@@ -173,7 +178,6 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
                 return BadRequest(error);
             }
         }
-    
     }
 
     /// <summary>
@@ -181,12 +185,13 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
     /// </summary>
     [Authorize]
     [HttpPut] // This attribute will make the controller respond to a HTTP PUT request on the route /api/User/Update.
-    public async Task<ActionResult<RequestResponse>> Update([FromBody] FeedbackUpdateDTO Feedback) // The FromBody attribute indicates that the parameter is deserialized from the JSON body.
+    public async Task<ActionResult<RequestResponse>>
+        Update([FromBody] FeedbackUpdateDTO Feedback) // The FromBody attribute indicates that the parameter is deserialized from the JSON body.
     {
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Feedback/Update";
-            var link = root + "/api/Feedback/Update";
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Feedback/Update";
             var response = await client.PutAsJsonAsync(link, Feedback);
             if (response.IsSuccessStatusCode)
             {
@@ -230,12 +235,13 @@ public class FeedbackController : ControllerBase // Here we use the AuthorizedCo
     /// </summary>
     [Authorize]
     [HttpDelete("{id}/{idUser}")] // This attribute will make the controller respond to a HTTP DELETE request on the route /api/User/Delete/<some_guid>.
-    public async Task<ActionResult<RequestResponse>> Delete([FromRoute] Guid id, [FromRoute] Guid idUser) // The FromRoute attribute will bind the id from the route to this parameter.
+    public async Task<ActionResult<RequestResponse>>
+        Delete([FromRoute] Guid id, [FromRoute] Guid idUser) // The FromRoute attribute will bind the id from the route to this parameter.
     {
         using (HttpClient client = new HttpClient())
         {
             //var link = "http://localhost:5000/api/Feedback/Delete/" + id.ToString() + "/" + idUser.ToString();
-            var link = root + "/api/Feedback/Delete/" + id.ToString() + "/" + idUser.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Feedback/Delete/" + id.ToString() + "/" + idUser.ToString();
             var response = await client.DeleteAsync(link);
             if (response.IsSuccessStatusCode)
             {

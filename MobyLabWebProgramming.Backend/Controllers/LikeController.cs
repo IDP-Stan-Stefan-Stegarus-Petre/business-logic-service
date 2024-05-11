@@ -1,19 +1,24 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Errors;
 using MobyLabWebProgramming.Core.Responses;
+using MobyLabWebProgramming.Infrastructure.Configurations;
 using Newtonsoft.Json;
 
 namespace MobyLabWebProgramming.Backend.Controllers;
 
 [ApiController] // This attribute specifies for the framework to add functionality to the controller such as binding multipart/form-data.
 [Route("api/[controller]/[action]")] // The Route attribute prefixes the routes/url paths with template provides as a string, the keywords between [] are used to automatically take the controller and method name.
-public class LikeController: ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
+public class
+    LikeController : ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
 {
-    public string root = "http://localhost:5000";
-    public LikeController() // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
+    private readonly DbReadWriteServiceConfiguration _dbReadWriteServiceConfiguration;
+
+    public LikeController(IOptions<DbReadWriteServiceConfiguration> dbReadWriteServiceConfiguration)
     {
+        _dbReadWriteServiceConfiguration = dbReadWriteServiceConfiguration.Value;
     }
 
     /// <summary>
@@ -26,7 +31,7 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Like/GetById/" + id.ToString();
-            var link = root + "/api/Like/GetById/" + id.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Like/GetById/" + id.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -73,12 +78,13 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
     /// </summary>
     [Authorize]
     [HttpGet("count-likes/{idPost:guid}")] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetPage.
-    public async Task<ActionResult<RequestResponse<int>>> GetPostLikes([FromRoute] Guid idPost) // The FromQuery attribute will bind the parameters matching the names of                                                                                                                                   // the PaginationSearchQueryParams properties to the object in the method parameter.
-    { 
+    public async Task<ActionResult<RequestResponse<int>>>
+        GetPostLikes([FromRoute] Guid idPost) // The FromQuery attribute will bind the parameters matching the names of                                                                                                                                   // the PaginationSearchQueryParams properties to the object in the method parameter.
+    {
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Like/GetPostLikes/count-likes/" + idPost.ToString();
-            var link = root + "/api/Like/GetPostLikes/count-likes/" + idPost.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Like/GetPostLikes/count-likes/" + idPost.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -115,17 +121,19 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
                 var error = JsonConvert.DeserializeObject<ErrorMessage>(errorData?.ToString());
                 return BadRequest(error);
             }
-        } 
+        }
     }
 
     //GetLikesForPost
     [HttpGet("likes/{idPost}/{idUser}")] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetPage.
-    public async Task<ActionResult<RequestResponse<List<LikeDTO>>>> GetLikesForPost([FromRoute] Guid idPost, [FromRoute] Guid idUser) // The FromQuery attribute will bind the parameters matching the names of                                                                                                                                    // the PaginationSearchQueryParams properties to the object in the method parameter.
+    public async Task<ActionResult<RequestResponse<List<LikeDTO>>>>
+        GetLikesForPost([FromRoute] Guid idPost,
+            [FromRoute] Guid idUser) // The FromQuery attribute will bind the parameters matching the names of                                                                                                                                    // the PaginationSearchQueryParams properties to the object in the method parameter.
     {
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Like/GetLikesForPost/likes/" + idPost.ToString() + "/" + idUser.ToString();
-            var link = root + "/api/Like/GetLikesForPost/likes/" + idPost.ToString() + "/" + idUser.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Like/GetLikesForPost/likes/" + idPost.ToString() + "/" + idUser.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -175,7 +183,7 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Like/Add";
-            var link = root + "/api/Like/Add";
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Like/Add";
             var response = await client.PostAsJsonAsync(link, like);
             if (response.IsSuccessStatusCode)
             {
@@ -213,18 +221,20 @@ public class LikeController: ControllerBase // Here we use the AuthorizedControl
             }
         }
     }
+
     /// <summary>
     /// This method implements the Delete operation (D from CRUD) on a user.
     /// Note that in the HTTP RFC you cannot have a body for DELETE operations.
     /// </summary>
     [Authorize]
     [HttpDelete("{id}/{idUser}/{idPost}")] // This attribute will make the controller respond to a HTTP DELETE request on the route /api/User/Delete/<some_guid>.
-    public async Task<ActionResult<RequestResponse>> Delete([FromRoute] Guid id, [FromRoute] Guid idUser, [FromRoute] Guid idPost) // The FromRoute attribute will bind the id from the route to this parameter.
+    public async Task<ActionResult<RequestResponse>>
+        Delete([FromRoute] Guid id, [FromRoute] Guid idUser, [FromRoute] Guid idPost) // The FromRoute attribute will bind the id from the route to this parameter.
     {
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Like/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
-            var link = root + "/api/Like/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Like/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
             var response = await client.DeleteAsync(link);
             if (response.IsSuccessStatusCode)
             {

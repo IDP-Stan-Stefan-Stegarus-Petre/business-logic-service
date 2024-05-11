@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Errors;
 using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
+using MobyLabWebProgramming.Infrastructure.Configurations;
 using Newtonsoft.Json;
+
 namespace MobyLabWebProgramming.Backend.Controllers;
 
 /// <summary>
@@ -12,12 +15,14 @@ namespace MobyLabWebProgramming.Backend.Controllers;
 /// </summary>
 [ApiController] // This attribute specifies for the framework to add functionality to the controller such as binding multipart/form-data.
 [Route("api/[controller]/[action]")] // The Route attribute prefixes the routes/url paths with template provides as a string, the keywords between [] are used to automatically take the controller and method name.
-public class EventController: ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
+public class
+    EventController : ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
 {
-    public string root = "http://localhost:5000";
+    private readonly DbReadWriteServiceConfiguration _dbReadWriteServiceConfiguration;
 
-    public EventController() // Also, you may pass constructor parameters to a base class constructor and call as specific constructor from the base class.
+    public EventController(IOptions<DbReadWriteServiceConfiguration> dbReadWriteServiceConfiguration)
     {
+        _dbReadWriteServiceConfiguration = dbReadWriteServiceConfiguration.Value;
     }
 
     /// <summary>
@@ -30,7 +35,7 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Event/GetById/" + id.ToString();
-            var link = root + "/api/Event/GetById/" + id.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Event/GetById/" + id.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -77,13 +82,15 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
     /// </summary>
     [Authorize]
     [HttpGet] // This attribute will make the controller respond to a HTTP GET request on the route /api/User/GetPage.
-    public async Task<ActionResult<RequestResponse<PagedResponse<EventDTO>>>> GetPage([FromQuery] PaginationSearchQueryParams pagination) // The FromQuery attribute will bind the parameters matching the names of
-                                                                                                                                         // the PaginationSearchQueryParams properties to the object in the method parameter.
+    public async Task<ActionResult<RequestResponse<PagedResponse<EventDTO>>>>
+        GetPage([FromQuery] PaginationSearchQueryParams pagination) // The FromQuery attribute will bind the parameters matching the names of
+        // the PaginationSearchQueryParams properties to the object in the method parameter.
     {
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Event/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
-            var link = root + "/api/Event/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" + pagination.PageSize;
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Event/GetPage?" + "Search=" + pagination.Search + "&Page=" + pagination.Page + "&PageSize=" +
+                       pagination.PageSize;
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -133,7 +140,7 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Event/Add";
-            var link = root + "/api/Event/Add";
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Event/Add";
             var response = await client.PostAsJsonAsync(link, Event);
             if (response.IsSuccessStatusCode)
             {
@@ -176,12 +183,13 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
     /// </summary>
     [Authorize]
     [HttpPut] // This attribute will make the controller respond to a HTTP PUT request on the route /api/User/Update.
-    public async Task<ActionResult<RequestResponse>> Update([FromBody] EventUpdateDTO Event) // The FromBody attribute indicates that the parameter is deserialized from the JSON body.
+    public async Task<ActionResult<RequestResponse>>
+        Update([FromBody] EventUpdateDTO Event) // The FromBody attribute indicates that the parameter is deserialized from the JSON body.
     {
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Event/Update";
-            var link = root + "/api/Event/Update";
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Event/Update";
             var response = await client.PutAsJsonAsync(link, Event);
             if (response.IsSuccessStatusCode)
             {
@@ -225,12 +233,13 @@ public class EventController: ControllerBase // Here we use the AuthorizedContro
     /// </summary>
     [Authorize]
     [HttpDelete("{id}/{idUser}")] // This attribute will make the controller respond to a HTTP DELETE request on the route /api/User/Delete/<some_guid>.
-    public async Task<ActionResult<RequestResponse>> Delete([FromRoute] Guid id, [FromRoute] Guid idUser) // The FromRoute attribute will bind the id from the route to this parameter.
+    public async Task<ActionResult<RequestResponse>>
+        Delete([FromRoute] Guid id, [FromRoute] Guid idUser) // The FromRoute attribute will bind the id from the route to this parameter.
     {
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Event/Delete/" + id.ToString() + "/" + idUser.ToString();
-            var link = root + "/api/Event/Delete/" + id.ToString() + "/" + idUser.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Event/Delete/" + id.ToString() + "/" + idUser.ToString();
             var response = await client.DeleteAsync(link);
             if (response.IsSuccessStatusCode)
             {

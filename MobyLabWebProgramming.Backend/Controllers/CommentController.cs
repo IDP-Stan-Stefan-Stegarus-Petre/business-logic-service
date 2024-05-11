@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Errors;
 using MobyLabWebProgramming.Core.Responses;
+using MobyLabWebProgramming.Infrastructure.Configurations;
 using Newtonsoft.Json;
 namespace MobyLabWebProgramming.Backend.Controllers;
 
@@ -10,9 +12,11 @@ namespace MobyLabWebProgramming.Backend.Controllers;
 [Route("api/[controller]/[action]")] // The Route attribute prefixes the routes/url paths with template provides as a string, the keywords between [] are used to automatically take the controller and method name.
 public class CommentController: ControllerBase // Here we use the AuthorizedController as the base class because it derives ControllerBase and also has useful methods to retrieve user information.
 {
-    public string root = "http://localhost:5000";
-    public CommentController()
+    private readonly DbReadWriteServiceConfiguration _dbReadWriteServiceConfiguration;
+
+    public CommentController(IOptions<DbReadWriteServiceConfiguration> dbReadWriteServiceConfiguration)
     {
+        _dbReadWriteServiceConfiguration = dbReadWriteServiceConfiguration.Value;
     }
 
     [Authorize] // You need to use this attribute to protect the route access, it will return a Forbidden status code if the JWT is not present or invalid, and also it will decode the JWT token.
@@ -21,8 +25,7 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
     {
         using (HttpClient client = new HttpClient())
         {
-            // var link = "http://localhost:5000/api/Comment/GetById/" + id.ToString();
-            var link = root + "/api/Comment/GetById/" + id.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Comment/GetById/" + id.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -69,7 +72,7 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Comment/GetPostComments/count-Comments/" + idPost.ToString();
-            var link = root + "/api/Comment/GetPostComments/count-Comments/" + idPost.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Comment/GetPostComments/count-Comments/" + idPost.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -116,7 +119,7 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Comment/GetCommentsForPost/Comments/" + idPost.ToString();
-            var link = root + "/api/Comment/GetCommentsForPost/Comments/" + idPost.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Comment/GetCommentsForPost/Comments/" + idPost.ToString();
             var response = await client.GetAsync(link);
             if (response.IsSuccessStatusCode)
             {
@@ -166,7 +169,7 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Comment/Add";
-            var link = root + "/api/Comment/Add";
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Comment/Add";
             var response = await client.PostAsJsonAsync(link, Comment);
             if (response.IsSuccessStatusCode)
             {
@@ -212,7 +215,7 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Comment/Update";
-            var link = root + "/api/Comment/Update";
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Comment/Update";
             var response = await client.PutAsJsonAsync(link, Comment);
             if (response.IsSuccessStatusCode)
             {
@@ -262,7 +265,7 @@ public class CommentController: ControllerBase // Here we use the AuthorizedCont
         using (HttpClient client = new HttpClient())
         {
             // var link = "http://localhost:5000/api/Comment/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
-            var link = root + "/api/Comment/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
+            var link = _dbReadWriteServiceConfiguration.BaseUrl + "/api/Comment/Delete/" + id.ToString() + "/" + idUser.ToString() + "/" + idPost.ToString();
             var response = await client.DeleteAsync(link);
             if (response.IsSuccessStatusCode)
             {
